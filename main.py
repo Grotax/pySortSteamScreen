@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import requests
 import os
+import json
 
 knownNames = {}
 
@@ -14,10 +15,14 @@ def getSteamName(steamID):
         if int(steamID) < 9223372036854775807:
             payload = {'appids': steamID}
             r = requests.get('https://store.steampowered.com/api/appdetails/', params=payload)
-            data = r.json()
-            print(data[steamID]['success'])
-            knownNames[steamID] = data[steamID]['data']['name']
-            return knownNames.get(steamID)
+            data = r.text
+            data = json.loads(data)
+            if (data[steamID]['success']):
+                knownNames[steamID] = data[steamID]['data']['name']
+                return knownNames.get(steamID)
+            else:
+                print("Not a Steam game.")
+                return "Unkown"
         else:
             print("Not a Steam game.")
             return "Unkown"
@@ -37,6 +42,13 @@ def moveFiles(steamID, name):
 
 
 def main():
+    global knownNames
+    try:
+        with open("knownNames.json", "r") as f:
+            knownNames = json.load(f)
+    except FileNotFoundError as e:
+        knownNames = {}
+
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
         split = name.partition("_")
@@ -44,6 +56,9 @@ def main():
             steamID = name.partition("_")[0]
             print(getSteamName(steamID))
             moveFiles(steamID, getSteamName(steamID))
+
+    with open("knownNames.json", "w") as f:
+        json.dump(knownNames, f)
 
 if __name__ == '__main__':
     main()
