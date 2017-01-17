@@ -52,8 +52,9 @@ def main():
         split = name.partition("_")
         if not os.path.isdir(file) and not split[1] == "":
             steamID = split[0]
-            print(getSteamName(steamID))
-            moveFiles(steamID, getSteamName(steamID))
+            steamName = getSteamName(steamID)
+            print("Game Name: %s" % steamName)
+            moveFiles(steamID, steamName)
 
     with open("knownNames.json", "w") as f:
         json.dump(knownNames, f)
