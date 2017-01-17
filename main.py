@@ -27,6 +27,9 @@ def getSteamName(steamID):
 
 
 def moveFiles(steamID, name):
+    for ch in ['/','\\',':','*','?','"','<','>','|']:
+        if ch in name:
+            name=name.replace(ch,"")
     newdir = os.getcwd()+"/"+name
     if not os.path.exists(newdir):
         os.makedirs(newdir)
