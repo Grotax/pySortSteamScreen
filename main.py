@@ -21,11 +21,9 @@ def getSteamName(steamID):
                 knownNames[steamID] = data[steamID]['data']['name']
                 return knownNames.get(steamID)
             else:
-                print("Not a Steam game.")
-                return "Unkown"
+                return steamID
         else:
-            print("Not a Steam game.")
-            return "Unkown"
+            return steamID
 
 
 def moveFiles(steamID, name):
@@ -35,7 +33,7 @@ def moveFiles(steamID, name):
         print(newdir+" was created.")
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
-        if name.startswith(steamID):
+        if not os.path.isdir(file) and name.startswith(steamID):
             newname = newdir+"/"+os.path.basename(file)
             print("%s --> %s" % (file, newname))
             os.rename(file, newname)
@@ -52,8 +50,8 @@ def main():
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
         split = name.partition("_")
-        if not split[1] == "":
-            steamID = name.partition("_")[0]
+        if not os.path.isdir(file) and not split[1] == "":
+            steamID = split[0]
             print(getSteamName(steamID))
             moveFiles(steamID, getSteamName(steamID))
 
