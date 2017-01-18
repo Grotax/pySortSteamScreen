@@ -26,11 +26,16 @@ def getSteamName(steamID):
             return steamID
 
 
-def moveFiles(steamID, name):
-    for ch in ['/','\\',':','*','?','"','<' ,'>','|']: #Windows illegal folder chars
+def fileName(name):
+    for ch in ['/', '\\', ':', '*', '?', '"', '<', '>', '|']:  # Windows illegal folder chars
         if ch in name:
-            name=name.replace(ch,"")
+            name = name.replace(ch, "")
             # replacables:  ['∕','⧵' ,'˸','⁎','ॽ','“','ᑄ','ᑀ','┃']  #similar chars
+    return name
+
+
+def moveFiles(steamID, name):
+    name = fileName(name)
     newdir = os.getcwd()+"/"+name
     if not os.path.exists(newdir):
         os.makedirs(newdir)
