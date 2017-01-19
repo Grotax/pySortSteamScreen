@@ -80,6 +80,8 @@ def loadJson():
 
 def writeJson():
     global knownNames
+    jsonFile = open("knownNames.json", "w")
+    jsonFile.close()
     with open("knownNames.json", "a") as f:
         knownNames.update({"version": version})
         json.dump(knownNames, f, indent="\t")
