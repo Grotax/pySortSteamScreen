@@ -10,7 +10,7 @@ version = "0.1"
 def getSteamName(steamID):
     global knownNames
     if(steamID in knownNames):
-        return knownNames.get(steamID)
+        return knownNames[steamID]['name']
     else:
         # Steam id max
         intSteamID = int(steamID)
@@ -19,19 +19,25 @@ def getSteamName(steamID):
             r = requests.get('https://store.steampowered.com/api/appdetails/', params=payload)
             data = r.json()
             if (data[steamID]['success']):
-                knownNames[steamID]['name'] = data[steamID]['data']['name']
-                knownNames[steamID]['steam'] = True
-                return knownNames.get(steamID)
+                entry = {}
+                entry['name'] = data[steamID]['data']['name']
+                entry['steam'] = True
+                knownNames[steamID] = entry
+                return knownNames[steamID]['name']
             else:
                 # if we can't get a name from Steam we set the id as name
-                knownNames[steamID]['name'] = steamID
+                entry = {}
+                entry['name'] = steamID
                 # if True name is in Steam Shop, else False
-                knownNames[steamID]['steam'] = False
-                return steamID
+                entry['steam'] = False
+                knownNames[steamID] = entry
+                return knownNames[steamID]['name']
         else:
-            knownNames[steamID]['name'] = steamID
-            knownNames[steamID]['steam'] = False
-            return steamID
+            entry = {}
+            entry['name'] = steamID
+            entry['steam'] = False
+            knownNames[steamID] = entry
+            return knownNames[steamID]['name']
 
 
 def fileName(name):
@@ -81,7 +87,7 @@ def writeJson():
 
 def main():
     global knownNames
-    idList = {}
+    idSet = set()
 
     loadJson()
 
@@ -90,12 +96,13 @@ def main():
         split = name.partition("_")
         if not os.path.isdir(file) and not split[1] == "":
             steamID = split[0]
-            idList.update(steamID)
-        for steamID in idList:
-            steamName = getSteamName(steamID)
-            print("Game Name: %s" % steamName)
-            moveFiles(steamID, steamName)
-        writeJson()
+            idSet.add(steamID)
+    print(idSet)
+    for steamID in idSet:
+        steamName = getSteamName(steamID)
+        print("Game Name: %s" % steamName)
+        moveFiles(steamID, steamName)
+    writeJson()
 
 if __name__ == '__main__':
     main()
