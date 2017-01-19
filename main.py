@@ -4,6 +4,7 @@ import os
 import json
 
 knownNames = {}
+version = "0.1"
 
 
 def getSteamName(steamID):
@@ -12,17 +13,24 @@ def getSteamName(steamID):
         return knownNames.get(steamID)
     else:
         # Steam id max
-        if int(steamID) < 9223372036854775807:
+        intSteamID = int(steamID)
+        if intSteamID > 0 and intSteamID < 9223372036854775807:
             payload = {'appids': steamID}
             r = requests.get('https://store.steampowered.com/api/appdetails/', params=payload)
-            data = r.text
-            data = json.loads(data)
+            data = r.json()
             if (data[steamID]['success']):
-                knownNames[steamID] = data[steamID]['data']['name']
+                knownNames[steamID]['name'] = data[steamID]['data']['name']
+                knownNames[steamID]['steam'] = True
                 return knownNames.get(steamID)
             else:
+                # if we can't get a name from Steam we set the id as name
+                knownNames[steamID]['name'] = steamID
+                # if True name is in Steam Shop, else False
+                knownNames[steamID]['steam'] = False
                 return steamID
         else:
+            knownNames[steamID]['name'] = steamID
+            knownNames[steamID]['steam'] = False
             return steamID
 
 
@@ -48,14 +56,34 @@ def moveFiles(steamID, name):
             os.rename(file, newname)
 
 
-def main():
+def loadJson():
     global knownNames
-    idList = {}
     try:
         with open("knownNames.json", "r") as f:
             knownNames = json.load(f)
+            if "version" in knownNames:
+                if knownNames.get("version") != version:
+                    print("Unkown version: %s, current version: %s" % (knownNames.get("version"), version))
+                    knownNames = {}
+            else:
+                print("No version number found")
+                knownNames = {}
     except FileNotFoundError as e:
         knownNames = {}
+
+
+def writeJson():
+    global knownNames
+    with open("knownNames.json", "a") as f:
+        knownNames.update({"version": version})
+        json.dump(knownNames, f, indent="\t")
+
+
+def main():
+    global knownNames
+    idList = {}
+
+    loadJson()
 
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
@@ -67,8 +95,7 @@ def main():
             steamName = getSteamName(steamID)
             print("Game Name: %s" % steamName)
             moveFiles(steamID, steamName)
-    with open("knownNames.json", "w") as f:
-        json.dump(knownNames, f)
+        writeJson()
 
 if __name__ == '__main__':
     main()
