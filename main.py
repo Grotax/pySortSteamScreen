@@ -90,7 +90,7 @@ def writeJson():
 
 def main():
     global knownNames
-    onlyGenerateFile = ("-gf" in sys.argv)
+    onlyGenerateFile = ("-gf" in sys.argv) #Parameter -gf
     idSet = set()
     loadJson()
 
@@ -110,3 +110,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+#Parameter list
+#   -gf     Only generate knownNames.json without moving files
