@@ -2,6 +2,7 @@
 import requests
 import os
 import json
+import sys
 
 knownNames = {}
 version = "0.1"
@@ -89,8 +90,8 @@ def writeJson():
 
 def main():
     global knownNames
+    onlyGenerateFile = ("-gf" in sys.argv)
     idSet = set()
-
     loadJson()
 
     for file in os.listdir(os.getcwd()):
@@ -102,8 +103,9 @@ def main():
     print(idSet)
     for steamID in idSet:
         steamName = getSteamName(steamID)
-        print("Game Name: %s" % steamName)
-        moveFiles(steamID, steamName)
+        if onlyGenerateFile == False:
+            print("Game Name: %s" % steamName)
+            moveFiles(steamID, steamName)
     writeJson()
 
 if __name__ == '__main__':
