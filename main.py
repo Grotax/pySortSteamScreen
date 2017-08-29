@@ -9,6 +9,7 @@ from optparse import OptionParser
 knownNames = {}
 version = "0.1"
 
+
 def getArguments():
     parser = OptionParser()
     parser.add_option("-p", "--pattern", default="(\d+)_\d+.*", metavar="REGEX",
@@ -24,6 +25,7 @@ def getArguments():
              help="Don't move anything, just generate JSON File. "+
              "Useful to Rename unknown Names before Generating Folders")
     return parser.parse_args()
+
 
 def getSteamName(steamID):
     global knownNames
@@ -113,13 +115,10 @@ def main():
     global knownNames
     idSet = set()
     loadJson()
-
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
         Regex = options.pattern
         Search = re.search(Regex, name)
-
-        split = name.partition("_")
         if not os.path.isdir(file) and \
         not name == sys.argv[0] and \
         not name == "knownNames.json":
