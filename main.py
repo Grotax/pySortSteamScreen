@@ -88,7 +88,7 @@ def loadJson():
         with open("knownNames.json", "r") as f:
             knownNames = json.load(f)
             if "version" in knownNames:
-                if knownNames.get("version") < version:
+                if float(knownNames.get("version")) < version:
                     print("Unkown version: %s, current version: %s" % (knownNames.get("version"), version))
                     knownNames = {}
             else:
