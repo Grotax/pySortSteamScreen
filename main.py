@@ -3,10 +3,27 @@ import requests
 import os
 import json
 import sys
+import re
+from optparse import OptionParser
 
 knownNames = {}
 version = "0.1"
 
+def getArguments():
+    parser = OptionParser()
+    parser.add_option("-p", "--pattern", default="(\d+)_\d+.*", metavar="REGEX",
+             dest="pattern", help="Use a custom pattern to find "+
+             "Identifier to use Program for other purposes. "+
+             "The first Group found will be used as Identifier")
+    parser.add_option("--offline", action="store_false", dest="Connect",
+             default=True, help="Do not attempt got get Name for Steam ID")
+    parser.add_option("-q", action="store_true", dest="quiet",
+             default=False, help="Don't print file movement notifications.")
+    parser.add_option("-j", "--json", action="store_true", dest="json",
+             default=False,
+             help="Don't move anything, just generate JSON File. "+
+             "Useful to Rename unknown Names before Generating Folders")
+    return parser.parse_args()
 
 def getSteamName(steamID):
     global knownNames
@@ -57,9 +74,11 @@ def moveFiles(steamID, name):
         print(newdir+" was created.")
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
-        if not os.path.isdir(file) and name.startswith(steamID):
+        pat = re.search("(.*)\(.*\)(.*)",options.pattern)
+        reregex = pat.group(1) + steamID + pat.group(2)
+        if not os.path.isdir(file) and re.search(reregex,name):
             newname = newdir+"/"+os.path.basename(file)
-            print("%s --> %s" % (file, newname))
+            if not options.quiet: print("%s --> %s" % (file, newname))
             os.rename(file, newname)
 
 
@@ -89,27 +108,38 @@ def writeJson():
 
 
 def main():
+    global options, args
+    options, args = getArguments()
     global knownNames
-    onlyGenerateFile = ("-gf" in sys.argv) #Parameter -gf
     idSet = set()
     loadJson()
 
     for file in os.listdir(os.getcwd()):
         name = os.path.basename(file)
+        Regex = options.pattern
+        Search = re.search(Regex, name)
+
         split = name.partition("_")
-        if not os.path.isdir(file) and not split[1] == "":
-            steamID = split[0]
-            idSet.add(steamID)
+        if not os.path.isdir(file) and \
+        not name == sys.argv[0] and \
+        not name == "knownNames.json":
+            try:
+                steamID = Search.group(1)
+                idSet.add(steamID)
+            except IndexError: #Regex did not find group
+                continue
+            except AttributeError: #Regex did not match
+                continue
     print(idSet)
     for steamID in idSet:
-        steamName = getSteamName(steamID)
-        if onlyGenerateFile == False:
+        if options.Connect:
+            steamName = getSteamName(steamID)
+        else:
+            steamName = steamID
+        if not options.json:
             print("Game Name: %s" % steamName)
             moveFiles(steamID, steamName)
     writeJson()
 
 if __name__ == '__main__':
     main()
-
-#Parameter list
-#   -gf     Only generate knownNames.json without moving files
